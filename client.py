@@ -109,14 +109,13 @@ class GameClient:
 
             pygame.display.flip()
 
-        client.close()
+        
         pygame.quit()
-        sys.exit()
+
+    def start(self):
+        threading.Thread(target=self.listen_server).start()
+        self.game_loop()
     
-
-
-
-import time
 
 if __name__ == "__main__":
     
@@ -125,6 +124,5 @@ if __name__ == "__main__":
     
     client = GameClient(server_ip, 5555)
     client.connect()
-
-    client.connect()
-    client.game_loop(client)
+    client.start()
+    client.close()
