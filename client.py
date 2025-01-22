@@ -5,6 +5,7 @@ import pygame
 import time
 import os
 import dotenv
+import sys
 
 class GameClient:
     def __init__(self, server_ip="localhost", server_port=5555):
@@ -71,35 +72,49 @@ class GameClient:
 
     def game_loop(self):
         pygame.init()
-        screen = pygame.display.set_mode((400, 400))
-        pygame.display.set_caption("Game Client")
-        clock = pygame.time.Clock()
+        screen = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Client Loop Example")
 
-        while self.running:
+        clock = pygame.time.Clock()
+        running = True
+
+        while running:
+            clock.tick(60)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.close()
-                    pygame.quit()
-                    return
+                    running = False
+                    break
 
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT]:
-                self.send_move(-1, 0)
-            if keys[pygame.K_RIGHT]:
-                self.send_move(1, 0)
-            if keys[pygame.K_UP]:
-                self.send_move(0, -1)
-            if keys[pygame.K_DOWN]:
-                self.send_move(0, 1)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+                        break
+                    elif event.key == pygame.K_LEFT:
+                        client.send_move(-1, 0)
+                    elif event.key == pygame.K_RIGHT:
+                        client.send_move(1, 0)
+                    elif event.key == pygame.K_UP:
+                        client.send_move(0, -1)
+                    elif event.key == pygame.K_DOWN:
+                        client.send_move(0, 1)
 
-            # Render local game state
-            screen.fill((255, 255, 255))
-            for player_id, player_data in self.game_state.items():
-                x, y = player_data["x"], player_data["y"]
-                color = (255, 0, 0) if player_id == self.player_id else (0, 0, 255)
+
+            screen.fill((200, 200, 200))
+
+            for pid, data in client.game_state.items():
+                x, y = data["x"], data["y"]
+                color = (255, 0, 0) if pid == client.player_id else (0, 0, 255)
                 pygame.draw.rect(screen, color, (x, y, 20, 20))
+
             pygame.display.flip()
-            clock.tick(30)
+
+        client.close()
+        pygame.quit()
+        sys.exit()
+    
+
+
 
 import time
 
@@ -108,13 +123,8 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     server_ip = os.getenv("SERVER_IP")
     
-    client = GameClient(server_ip, 5555)  # Oder IP des Servers
+    client = GameClient(server_ip, 5555)
     client.connect()
 
-    # Dummy-Test: Spieler läuft 3 Sekunden lang nach rechts
-    start_time = time.time()
-    while time.time() - start_time < 3:
-        client.send_move(dx=1, dy=0)
-        time.sleep(0.1)
-
-    client.close()
+    client.connect()
+    client.game_loop(client)
