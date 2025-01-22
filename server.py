@@ -1,10 +1,14 @@
 import socket
 from _thread import *
 import sys
+import os 
+import dotenv
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server = 'localhost'
+dotenv.load_dotenv()
+serverip = os.getenv("SERVER_IP")
+server = serverip
 port = 5555
 
 server_ip = socket.gethostbyname(server)
