@@ -2,7 +2,11 @@ import socket
 import json
 import threading
 import time
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+server_ip = os.getenv("SERVER_IP")
 class GameClient:
     def __init__(self, server_ip="localhost", server_port=5555):
         """
@@ -114,7 +118,7 @@ if __name__ == "__main__":
 import time
 
 if __name__ == "__main__":
-    client = GameClient("127.0.0.1", 5555)  # Oder IP des Servers
+    client = GameClient(server_ip, 5555)  # Oder IP des Servers
     client.connect()
 
     # Dummy-Test: Spieler läuft 3 Sekunden lang nach rechts
