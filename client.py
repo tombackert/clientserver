@@ -23,11 +23,15 @@ class GameClient:
             self.sock.connect((self.server_ip, self.server_port))
             self.connected = True
             print(f"[CLIENT] Connected to {self.server_ip}:{self.server_port}")
-            threading.Thread(target=self.listen_server).start()
+
+            threading.Thread(target=self.listen_server, daemon=True).start()
+
         except Exception as e:
             print(f"[CLIENT] Error: {e}")
 
     def listen_server(self):
+        buffer = ""
+
         while self.running:
             try:
                 data = self.sock.recv(4096)
@@ -35,22 +39,31 @@ class GameClient:
                     print("[CLIENT] Lost connection to server.")
                     self.running = False
                     break
-                msg = json.loads(data.decode("utf-8"))
-                self.handle_server_message(msg)
+
+                buffer += data.decode("utf-8")
+
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    self.process_line(line)
+
             except Exception as e:
-                print(f"[CLIENT] Error: {e}")
+                print(f"[CLIENT] Error receiving data: {e}")
                 self.running = False
                 break
+
         self.sock.close()
 
+
     def handle_server_message(self, msg):
-        if msg.get("type") == "WELCOME":
+        msg_type = msg.get("type")
+        if msg_type == "WELCOME":
             self.player_id = msg.get("client_id")
             print(f"[CLIENT] You are player {self.player_id}")
-        elif msg.get("type") == "STATE":
+        elif msg_type == "STATE":
             self.game_state = msg.get("players", {})
         else:
             print(f"[CLIENT] Unknown message: {msg}")
+
 
     def send_move(self, dx, dy):
         if not self.connected:
@@ -61,7 +74,7 @@ class GameClient:
     def send_data(self, data_dict):
         try:
             msg_str = json.dumps(data_dict)
-            self.sock.sendall(msg_str.encode("utf-8"))
+            self.sock.sendall((msg_str + "\n").encode("utf-8"))
         except:
             print("[CLIENT] Error sending data.")
 
@@ -113,7 +126,6 @@ class GameClient:
         pygame.quit()
 
     def start(self):
-        threading.Thread(target=self.listen_server).start()
         self.game_loop()
     
 
@@ -121,7 +133,7 @@ if __name__ == "__main__":
     
     dotenv.load_dotenv()
     server_ip = os.getenv("SERVER_IP")
-    
+
     client = GameClient(server_ip, 5555)
     client.connect()
     client.start()
