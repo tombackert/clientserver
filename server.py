@@ -163,3 +163,7 @@ class GameServer:
         self.running = False
         self.server_socket.close()
         print("[SERVER] Shutdown completed.")
+
+if __name__ == "__main__":
+    server = GameServer(host="0.0.0.0", port=5555, tick_rate=30)
+    server.start()

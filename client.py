@@ -110,3 +110,17 @@ if __name__ == "__main__":
         time.sleep(0.1)
 
     client.close()
+
+import time
+
+if __name__ == "__main__":
+    client = GameClient("127.0.0.1", 5555)  # Oder IP des Servers
+    client.connect()
+
+    # Dummy-Test: Spieler läuft 3 Sekunden lang nach rechts
+    start_time = time.time()
+    while time.time() - start_time < 3:
+        client.send_move(dx=1, dy=0)
+        time.sleep(0.1)
+
+    client.close()
